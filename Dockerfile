@@ -1,29 +1,49 @@
-﻿# =========================
-# 🚧 Stage 1: Build the project
-# =========================
+﻿# ==================================
+# Stage 1: Build
+# ==================================
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copy all files and restore dependencies
+# Copy solution file
+COPY ["WashBooking.sln", "./"]
+
+# Copy all project files
+COPY ["WashBooking/WashBooking.csproj", "WashBooking/"]
+COPY ["WashBooking.Application/WashBooking.Application.csproj", "WashBooking.Application/"]
+COPY ["WashBooking.Domain/WashBooking.Domain.csproj", "WashBooking.Domain/"]
+COPY ["WashBooking.Infrastructure/WashBooking.Infrastructure.csproj", "WashBooking.Infrastructure/"]
+
+# Restore dependencies
+RUN dotnet restore "WashBooking/WashBooking.csproj"
+
+# Copy all source code
 COPY . .
-RUN dotnet restore ./WashBooking.API/WashBooking.API.csproj
 
-# Build and publish to folder /out
-RUN dotnet publish ./WashBooking.API/WashBooking.API.csproj -c Release -o out
+# Build the project
+WORKDIR "/src/WashBooking"
+RUN dotnet build "WashBooking.csproj" -c Release -o /app/build
 
-# =========================
-# 🚀 Stage 2: Run the project
-# =========================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# ==================================
+# Stage 2: Publish
+# ==================================
+FROM build AS publish
+RUN dotnet publish "WashBooking.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# ==================================
+# Stage 3: Runtime
+# ==================================
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
-# Copy build output
-COPY --from=build /app/out .
-
-# Expose port (Render sẽ tự map)
-EXPOSE 8080
-
-# Tell ASP.NET to listen on all network interfaces
+# Set environment variables
+ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
 
-ENTRYPOINT ["dotnet", "WashBooking.API.dll"]
+# Expose port
+EXPOSE 8080
+
+# Copy published files
+COPY --from=publish /app/publish .
+
+# Set entry point
+ENTRYPOINT ["dotnet", "WashBooking.dll"]
