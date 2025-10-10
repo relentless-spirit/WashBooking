@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using WashBooking.Domain.Common;
@@ -28,7 +29,7 @@ namespace WashBooking.Domain.Interfaces.Repositories
         /// <param name="pageIndex">Chỉ số của trang (bắt đầu từ 1).</param>
         /// <param name="pageSize">Số lượng mục trên mỗi trang.</param>
         /// <returns>Kết quả phân trang chứa danh sách các mục và thông tin phân trang.</returns>
-        Task<PagedResult<T>> GetPagedAsync(int pageIndex, int pageSize);
+        Task<PagedResult<T>> GetPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? filter = null);
 
         /// <summary>
         /// Thêm một đối tượng mới.

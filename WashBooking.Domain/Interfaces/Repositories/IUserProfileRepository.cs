@@ -11,5 +11,6 @@ namespace WashBooking.Domain.Interfaces.Repositories
     {
         Task<UserProfile?> GetByEmaiAsync(string email);
         Task<UserProfile?> GetByPhoneAsync(string phone);
+        Task<List<UserProfile>> GetByRoleAsync(string role);
     }
 }

@@ -1,31 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WashBooking.Domain.Common
 {
     /// <summary>
-    /// Lớp chứa kết quả của một truy vấn được phân trang.
+    /// Lớp chứa kết quả của một truy vấn đã được phân trang và hiện thực hóa.
     /// </summary>
     /// <typeparam name="T">Kiểu dữ liệu của các mục.</typeparam>
     public class PagedResult<T>
     {
         /// <summary>
-        /// Danh sách các mục trên trang hiện tại.
+        /// Danh sách các mục trên trang hiện tại (đã được tải vào bộ nhớ).
         /// </summary>
         public List<T> Items { get; set; } = new List<T>();
 
         /// <summary>
-        /// Tổng số mục trong toàn bộ tập dữ liệu.
+        /// Tổng số mục trong toàn bộ tập dữ liệu (sau khi đã lọc).
         /// </summary>
         public int TotalCount { get; set; }
 
         /// <summary>
-        /// Chỉ số của trang hiện tại (bắt đầu từ 1).
+        /// Số của trang hiện tại (bắt đầu từ 1).
         /// </summary>
-        public int PageIndex { get; set; }
+        public int PageNumber { get; set; }
 
         /// <summary>
         /// Kích thước của trang (số mục mỗi trang).
@@ -35,16 +32,16 @@ namespace WashBooking.Domain.Common
         /// <summary>
         /// Tổng số trang.
         /// </summary>
-        public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+        public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(TotalCount / (double)PageSize) : 0;
 
         /// <summary>
         /// Cho biết có trang trước đó hay không.
         /// </summary>
-        public bool HasPreviousPage => PageIndex > 1;
+        public bool HasPreviousPage => PageNumber > 1;
 
         /// <summary>
         /// Cho biết có trang tiếp theo hay không.
         /// </summary>
-        public bool HasNextPage => PageIndex < TotalPages;
+        public bool HasNextPage => PageNumber < TotalPages;
     }
 }

@@ -1,10 +1,5 @@
 ﻿using AutoMapper;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WashBooking.Application.DTOs.AuthDTO.LoginDTO;
 using WashBooking.Application.DTOs.AuthDTO.LogoutDTO;
 using WashBooking.Application.DTOs.AuthDTO.RefreshTokenDTO;
@@ -64,13 +59,13 @@ namespace WashBooking.Application.Services.Auth
                 return Result<LoginResponse>.Failure(new Error("Auth.Login.InvalidCredentials", "Incorrect username or password."));
             }
 
-            var userProfileDTO = _mapper.Map<UserProfileDTO>(account.UserProfile);
+            var userProfileDto = _mapper.Map<UserProfileDTO>(account.UserProfile);
 
             var tokenResult = await _tokenOrchestrator.GenerateAndSaveTokensAsync(account);
 
             var loginResponse = new LoginResponse
             {
-                UserProfileDTO = userProfileDTO,
+                UserProfileDTO = userProfileDto,
                 AccessToken = tokenResult.AccessToken,
                 AccessTokenExpiration = tokenResult.AccessTokenExpiration,  
                 RefreshToken = tokenResult.RefreshToken
@@ -174,8 +169,14 @@ namespace WashBooking.Application.Services.Auth
 
             await _unitOfWork.UserProfileRepository.AddAsync(userProfile);
             await _unitOfWork.AccountRepository.AddAsync(account);
-            await _unitOfWork.SaveChangesAsync();
-
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                return Result.Failure(new Error("Auth.Add.Database.Error", "Register failed. Please try again later."));
+            }
             return Result.Success();
         }
     }

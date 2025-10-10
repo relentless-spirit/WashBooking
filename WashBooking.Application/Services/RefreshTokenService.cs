@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WashBooking.Application.Interfaces;
+﻿using WashBooking.Application.Interfaces;
 using WashBooking.Domain.Entities;
 using WashBooking.Domain.Interfaces.Persistence;
 
@@ -16,7 +11,7 @@ namespace WashBooking.Application.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<RefreshToken> IsTokenValid(string refreshToken)
+        public async Task<RefreshToken?> IsTokenValid(string refreshToken)
         {
             var token = await _unitOfWork.RefreshTokenRepository.GetByTokenAsync(refreshToken);
             if (token is null) return null;

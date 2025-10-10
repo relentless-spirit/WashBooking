@@ -24,11 +24,11 @@ namespace WashBooking.Application.Services.Auth
         }
         public async Task<TokenResult> GenerateAndSaveTokensAsync(Account account)
         {
-            var userProfileDTO = _mapper.Map<UserProfileDTO>(account.UserProfile);
-            var tokenResult = _jwtProvider.GenerateTokens(userProfileDTO);
+            var userProfileDto = _mapper.Map<UserProfileDTO>(account.UserProfile);
+            var tokenResult = _jwtProvider.GenerateTokens(userProfileDto);
 
             // Lưu Refresh Token vào cơ sở dữ liệu
-            var refreshToken = new Domain.Entities.RefreshToken
+            var refreshToken = new RefreshToken
             {
                 Token = tokenResult.RefreshToken,
                 AccountId = account.Id,

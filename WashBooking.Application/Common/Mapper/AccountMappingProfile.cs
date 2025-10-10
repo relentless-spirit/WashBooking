@@ -14,6 +14,7 @@ namespace WashBooking.Application.Common
         public AccountMappingProfile()
         {
             CreateMap<UserProfile, UserProfileDTO>();
+            
         }
     }
 }

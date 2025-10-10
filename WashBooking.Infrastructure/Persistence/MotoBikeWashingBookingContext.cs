@@ -20,9 +20,9 @@ public partial class MotoBikeWashingBookingContext : DbContext
 
     public virtual DbSet<Booking> Bookings { get; set; }
 
-    public virtual DbSet<BookingProgress> BookingProgresses { get; set; }
+    public virtual DbSet<BookingDetail> BookingDetails { get; set; }
 
-    public virtual DbSet<BookingService> BookingServices { get; set; }
+    public virtual DbSet<BookingDetailProgress> BookingDetailProgresses { get; set; }
 
     public virtual DbSet<OauthAccount> OauthAccounts { get; set; }
 
@@ -33,6 +33,12 @@ public partial class MotoBikeWashingBookingContext : DbContext
     public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<UserProfile> UserProfiles { get; set; }
+
+    /*
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Server=localhost;Database=MotoBikeWashingBooking;User ID=postgres;Password=12345");
+        */
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -75,6 +81,8 @@ public partial class MotoBikeWashingBookingContext : DbContext
             entity.HasOne(d => d.UserProfile).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.UserProfileId)
                 .HasConstraintName("fk_account_user_profile");
+
+            entity.HasQueryFilter(e => e.IsActive);
         });
 
         modelBuilder.Entity<Booking>(entity =>
@@ -85,22 +93,19 @@ public partial class MotoBikeWashingBookingContext : DbContext
 
             entity.HasIndex(e => e.BookingCode, "booking_booking_code_key").IsUnique();
 
-            entity.HasIndex(e => e.AssigneeId, "idx_booking_assignee_id");
-
-            entity.HasIndex(e => e.UserProfileId, "idx_booking_user_profile_id");
-
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id");
-            entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
             entity.Property(e => e.BookingCode)
                 .HasMaxLength(50)
                 .HasColumnName("booking_code");
-            entity.Property(e => e.BookingDate).HasColumnName("booking_date");
-            entity.Property(e => e.BookingTime).HasColumnName("booking_time");
+            entity.Property(e => e.BookingDatetime).HasColumnName("booking_datetime");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
+            entity.Property(e => e.CustomerEmail)
+                .HasMaxLength(255)
+                .HasColumnName("customer_email");
             entity.Property(e => e.CustomerName)
                 .HasMaxLength(255)
                 .HasColumnName("customer_name");
@@ -115,6 +120,7 @@ public partial class MotoBikeWashingBookingContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("payment_status");
             entity.Property(e => e.Status)
+                .HasConversion<string>()
                 .HasMaxLength(50)
                 .HasColumnName("status");
             entity.Property(e => e.TotalAmount)
@@ -125,83 +131,97 @@ public partial class MotoBikeWashingBookingContext : DbContext
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserProfileId).HasColumnName("user_profile_id");
 
-            entity.HasOne(d => d.Assignee).WithMany(p => p.BookingAssignees)
-                .HasForeignKey(d => d.AssigneeId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("fk_booking_assignee");
-
-            entity.HasOne(d => d.UserProfile).WithMany(p => p.BookingUserProfiles)
+            entity.HasOne(d => d.UserProfile).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.UserProfileId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("fk_booking_user_profile");
         });
 
-        modelBuilder.Entity<BookingProgress>(entity =>
+        modelBuilder.Entity<BookingDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("booking_progress_pkey");
+            entity.HasKey(e => e.Id).HasName("booking_detail_pkey");
 
-            entity.ToTable("booking_progress");
+            entity.ToTable("booking_detail");
 
-            entity.HasIndex(e => e.BookingId, "idx_booking_progress_booking_id");
+            entity.HasIndex(e => e.AssigneeId, "idx_booking_detail_assignee_id");
+
+            entity.HasIndex(e => e.BookingId, "idx_booking_detail_booking_id");
+
+            entity.HasIndex(e => e.ServiceId, "idx_booking_detail_service_id");
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id");
+            entity.Property(e => e.ActualEndTime).HasColumnName("actual_end_time");
+            entity.Property(e => e.ActualStartTime).HasColumnName("actual_start_time");
+            entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
             entity.Property(e => e.BookingId).HasColumnName("booking_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
-            entity.Property(e => e.EndTime).HasColumnName("end_time");
-            entity.Property(e => e.Note).HasColumnName("note");
-            entity.Property(e => e.StartTime).HasColumnName("start_time");
+            entity.Property(e => e.DurationMinutes).HasColumnName("duration_minutes");
+            entity.Property(e => e.PlannedEndTime).HasColumnName("planned_end_time");
+            entity.Property(e => e.PlannedStartTime).HasColumnName("planned_start_time");
+            entity.Property(e => e.Price)
+                .HasPrecision(10, 2)
+                .HasColumnName("price");
+            entity.Property(e => e.ServiceId).HasColumnName("service_id");
             entity.Property(e => e.Status)
-                .HasMaxLength(100)
+                .HasConversion<string>()
+                .HasMaxLength(50)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.VehicleDescription)
+                .HasMaxLength(255)
+                .HasColumnName("vehicle_description");
 
-            entity.HasOne(d => d.Booking).WithMany(p => p.BookingProgresses)
+            entity.HasOne(d => d.Assignee).WithMany(p => p.BookingDetails)
+                .HasForeignKey(d => d.AssigneeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_booking_detail_assignee");
+
+            entity.HasOne(d => d.Booking).WithMany(p => p.BookingDetails)
                 .HasForeignKey(d => d.BookingId)
-                .HasConstraintName("fk_booking_progress_booking");
+                .HasConstraintName("fk_booking_detail_booking");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.BookingDetails)
+                .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("fk_booking_detail_service");
         });
 
-        modelBuilder.Entity<BookingService>(entity =>
+        modelBuilder.Entity<BookingDetailProgress>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("booking_service_pkey");
+            entity.HasKey(e => e.Id).HasName("booking_detail_progress_pkey");
 
-            entity.ToTable("booking_service");
+            entity.ToTable("booking_detail_progress");
 
-            entity.HasIndex(e => e.BookingId, "idx_booking_service_booking_id");
-
-            entity.HasIndex(e => e.ServiceId, "idx_booking_service_service_id");
+            entity.HasIndex(e => e.BookingDetailId, "idx_booking_detail_progress_detail_id");
 
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("id");
-            entity.Property(e => e.BookingId).HasColumnName("booking_id");
+            entity.Property(e => e.BookingDetailId).HasColumnName("booking_detail_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("created_at");
-            entity.Property(e => e.Price)
-                .HasPrecision(10, 2)
-                .HasColumnName("price");
-            entity.Property(e => e.Quantity)
-                .HasDefaultValue(1)
-                .HasColumnName("quantity");
-            entity.Property(e => e.ServiceId).HasColumnName("service_id");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .HasColumnName("updated_at");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50)
+                .HasColumnName("status");
 
-            entity.HasOne(d => d.Booking).WithMany(p => p.BookingServices)
-                .HasForeignKey(d => d.BookingId)
-                .HasConstraintName("fk_booking_service_booking");
+            entity.HasOne(d => d.BookingDetail).WithMany(p => p.BookingDetailProgresses)
+                .HasForeignKey(d => d.BookingDetailId)
+                .HasConstraintName("fk_progress_to_booking_detail");
 
-            entity.HasOne(d => d.Service).WithMany(p => p.BookingServices)
-                .HasForeignKey(d => d.ServiceId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .HasConstraintName("fk_booking_service_service");
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.BookingDetailProgresses)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("fk_progress_created_by");
         });
 
         modelBuilder.Entity<OauthAccount>(entity =>
@@ -258,10 +278,6 @@ public partial class MotoBikeWashingBookingContext : DbContext
             entity.Property(e => e.TransactionId)
                 .HasMaxLength(255)
                 .HasColumnName("transaction_id");
-
-            entity.HasOne(d => d.Booking).WithMany(p => p.Payments)
-                .HasForeignKey(d => d.BookingId)
-                .HasConstraintName("fk_payment_booking");
         });
 
         modelBuilder.Entity<RefreshToken>(entity =>
@@ -314,6 +330,8 @@ public partial class MotoBikeWashingBookingContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+            
+            entity.HasQueryFilter(e => e.IsActive);
         });
 
         modelBuilder.Entity<UserProfile>(entity =>
@@ -352,6 +370,8 @@ public partial class MotoBikeWashingBookingContext : DbContext
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("updated_at");
+            
+            entity.HasQueryFilter(e => e.IsActive);
         });
 
         OnModelCreatingPartial(modelBuilder);

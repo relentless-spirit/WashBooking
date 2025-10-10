@@ -11,9 +11,9 @@ namespace WashBooking.Infrastructure.Persistence.Repositories
         private readonly MotoBikeWashingBookingContext _context;
 
         private IAccountRepository? _accountRepository;
-        private IGenericRepository<Booking>? _bookingRepository;
-        private IGenericRepository<BookingService>? _bookingServiceRepository;
-        private IGenericRepository<BookingProgress>? _bookingProgressRepository;
+        private IBookingRepository? _bookingRepository;
+        private IBookingDetailRepository? _bookingDetailRepository;
+        private IGenericRepository<BookingDetailProgress>? _bookingDetailProgressRepository;
         private IGenericRepository<OauthAccount>? _oauthAccountRepository;
         private IRefreshTokenRepository? _refreshTokenRepository;
         private IGenericRepository<Payment>? _paymentRepository;
@@ -28,14 +28,14 @@ namespace WashBooking.Infrastructure.Persistence.Repositories
         public IAccountRepository AccountRepository => 
             _accountRepository ??= new AccountRepository(_context);
 
-        public IGenericRepository<Booking> BookingRepository => 
-            _bookingRepository ??= new GenericRepository<Booking>(_context);
+        public IBookingRepository BookingRepository => 
+            _bookingRepository ??= new BookingRepository(_context);
 
-        public IGenericRepository<BookingService> BookingServiceRepository => 
-            _bookingServiceRepository ??= new GenericRepository<BookingService>(_context);
+        public IBookingDetailRepository BookingDetailRepository => 
+            _bookingDetailRepository ??= new BookingDetailRepository(_context);
 
-        public IGenericRepository<BookingProgress> BookingProgressRepository => 
-            _bookingProgressRepository ??= new GenericRepository<BookingProgress>(_context);
+        public IGenericRepository<BookingDetailProgress> BookingDetailProgressRepository => 
+            _bookingDetailProgressRepository ??= new GenericRepository<BookingDetailProgress>(_context);
 
         public IGenericRepository<OauthAccount> OauthAccountRepository => 
             _oauthAccountRepository ??= new GenericRepository<OauthAccount>(_context);
@@ -68,8 +68,8 @@ namespace WashBooking.Infrastructure.Persistence.Repositories
                     _context.Dispose();
                     _accountRepository = null;
                     _bookingRepository = null;
-                    _bookingServiceRepository = null;
-                    _bookingProgressRepository = null;
+                    _bookingDetailRepository = null;
+                    _bookingDetailProgressRepository = null;
                     _oauthAccountRepository = null;
                     _refreshTokenRepository = null;
                     _paymentRepository = null;

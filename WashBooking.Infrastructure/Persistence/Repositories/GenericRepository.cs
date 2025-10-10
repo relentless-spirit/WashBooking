@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using WashBooking.Domain.Common;
@@ -35,30 +36,51 @@ namespace WashBooking.Infrastructure.Persistence.Repositories
             return await _dbSet.FindAsync(id);
         }
 
-        public async Task<PagedResult<T>> GetPagedAsync(int pageIndex, int pageSize)
+        public async Task<PagedResult<T>> GetPagedAsync(int pageIndex, int pageSize, Expression<Func<T, bool>>? filter)
         {
-            // Đảm bảo các tham số hợp lệ
-            if (pageIndex < 1) pageIndex = 1;
-            if (pageSize < 1) pageSize = 10;
-
-            var totalCount = await _dbSet.CountAsync();
-            var items = await _dbSet.AsNoTracking()
-                                    .Skip((pageIndex - 1) * pageSize)
-                                    .Take(pageSize)
-                                    .ToListAsync();
-
+            // Validate and normalize input parameters
+            pageIndex = Math.Max(1, pageIndex);
+            pageSize = Math.Max(1, pageSize); 
+        
+            // Create base query
+            IQueryable<T> query = _dbSet.AsNoTracking();
+            
+            if (filter is not null)
+            {
+                query = query.Where(filter);
+            }
+            
+            // Get total count before paging
+            var totalCount = await query.CountAsync();
+        
+            // Apply paging
+            var items = await query
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        
+            // Create and return paged result
             return new PagedResult<T>
             {
                 Items = items,
                 TotalCount = totalCount,
-                PageIndex = pageIndex,
+                PageNumber = pageIndex,
                 PageSize = pageSize
             };
         }
 
         public void Remove(T entity)
         {
-            _dbSet.Remove(entity);
+            if (entity is ISoftDeletable softDeletableEntity)
+            {
+                // 2. Nếu là VIP, chỉ "đánh dấu" đã rời đi
+                softDeletableEntity.IsActive = false;
+                _dbSet.Update(entity); // Báo cho EF Core biết là có sự thay đổi (UPDATE)
+            }
+            else
+            {
+                _dbSet.Remove(entity);
+            }
         }
 
         public void Update(T entity)

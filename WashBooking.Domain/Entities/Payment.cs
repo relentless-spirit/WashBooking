@@ -20,6 +20,4 @@ public partial class Payment
     public string? PaymentDetails { get; set; }
 
     public DateTime? CreatedAt { get; set; }
-
-    public virtual Booking Booking { get; set; } = null!;
 }
