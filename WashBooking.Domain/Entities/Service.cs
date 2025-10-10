@@ -15,11 +15,11 @@ public partial class Service
 
     public int? DurationMinutes { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
+    public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
 }

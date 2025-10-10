@@ -24,5 +24,10 @@ namespace WashBooking.Infrastructure.Persistence.Repositories
         {
             return await _dbSet.SingleOrDefaultAsync(profile => profile.Phone.Equals(phone));
         }
+
+        public async Task<List<UserProfile>> GetByRoleAsync(string role)
+        {
+            return await _dbSet.Where(profile => profile.Role.Equals(role)).ToListAsync();
+        }
     }
 }

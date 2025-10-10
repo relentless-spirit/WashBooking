@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using WashBooking.Domain.Enums;
 
 namespace WashBooking.Domain.Entities;
 
@@ -8,8 +9,6 @@ public partial class Booking
     public Guid Id { get; set; }
 
     public Guid? UserProfileId { get; set; }
-    
-    public Guid? AssigneeId { get; set; }
 
     public string BookingCode { get; set; } = null!;
 
@@ -17,11 +16,11 @@ public partial class Booking
 
     public string CustomerPhone { get; set; } = null!;
 
-    public DateOnly BookingDate { get; set; }
+    public string CustomerEmail { get; set; } = null!;
 
-    public TimeOnly BookingTime { get; set; }
+    public DateTime BookingDatetime { get; set; }
 
-    public string Status { get; set; } = null!;
+    public BookingStatus Status { get; set; }
 
     public decimal TotalAmount { get; set; }
 
@@ -35,13 +34,7 @@ public partial class Booking
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual UserProfile? Assignee { get; set; }
-
-    public virtual ICollection<BookingProgress> BookingProgresses { get; set; } = new List<BookingProgress>();
-
-    public virtual ICollection<BookingService> BookingServices { get; set; } = new List<BookingService>();
-
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<BookingDetail> BookingDetails { get; set; } = new List<BookingDetail>();
 
     public virtual UserProfile? UserProfile { get; set; }
 }

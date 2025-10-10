@@ -10,13 +10,13 @@ public partial class Account
 
     public Guid UserProfileId { get; set; }
 
-    public string Username { get; set; }
+    public string Username { get; set; } = null!;
 
-    public string PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = null!;
 
     public AccountType AccountType { get; set; }
 
-    public bool? IsActive { get; set; }
+    public bool IsActive { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
@@ -26,5 +26,5 @@ public partial class Account
 
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
-    public virtual UserProfile UserProfile { get; set; }
+    public virtual UserProfile UserProfile { get; set; } = null!;
 }

@@ -12,9 +12,9 @@ namespace WashBooking.Domain.Interfaces.Persistence
     {
         // Add repository interfaces here, for example:
         IAccountRepository AccountRepository { get; }
-        IGenericRepository<Booking> BookingRepository { get; }
-        IGenericRepository<BookingService> BookingServiceRepository { get; }
-        IGenericRepository<BookingProgress> BookingProgressRepository { get; }
+        IBookingRepository BookingRepository { get; }
+        IBookingDetailRepository BookingDetailRepository { get; }
+        IGenericRepository<BookingDetailProgress> BookingDetailProgressRepository { get; }
         IGenericRepository<OauthAccount> OauthAccountRepository { get; }
         IRefreshTokenRepository RefreshTokenRepository { get; }
         IGenericRepository<Payment> PaymentRepository { get; }

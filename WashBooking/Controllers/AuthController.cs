@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using WashBooking.Application.DTOs.AuthDTO.LoginDTO;
 using WashBooking.Application.DTOs.AuthDTO.LogoutDTO;
 using WashBooking.Application.DTOs.AuthDTO.RefreshTokenDTO;
 using WashBooking.Application.DTOs.AuthDTO.RegisterDTO;
 using WashBooking.Application.Interfaces.Auth;
+using WashBooking.Domain.Common;
 
 namespace WashBooking.Controllers
 {
@@ -13,17 +12,18 @@ namespace WashBooking.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly ILogger<AuthController> _logger;
         private readonly IAuthService _authService;
 
-        public AuthController(ILogger<AuthController> logger, IAuthService authService)
+        public AuthController(IAuthService authService)
         {
-            _logger = logger;
             _authService = authService;
         }
 
         [HttpPost]
         [Route("register")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             var result = await _authService.RegisterAsync(request);
@@ -40,11 +40,15 @@ namespace WashBooking.Controllers
                 return BadRequest(result.Error);
             }
 
-            return Ok("Đăng kí tài khoản thành công!");
+            return Ok(new { code = "Auth.Register.Success", message = "Account registration successful!"});
         }
 
         [HttpPost]
         [Route("login")]
+        [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status422UnprocessableEntity)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var result = await _authService.LoginAsync(request);
@@ -80,7 +84,7 @@ namespace WashBooking.Controllers
                 }
                 return BadRequest(result.Error);
             }
-            return Ok("Đăng xuất thành công!");
+            return Ok(new { code = "Auth.Logout.Success", message = "Logout completed successfully." });
         }
 
         [HttpPost]
